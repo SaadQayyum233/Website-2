@@ -1,0 +1,71 @@
+Tasks:
+
+Remove Integrations from Settings Page:
+
+Navigate to the code responsible for rendering the /settings/integrations page.
+
+Identify and remove the UI elements (cards, list items, sections, etc.) and any associated frontend/backend logic specifically related to the following integrations:
+
+Mailchimp
+
+Zapier
+
+Slack
+
+Twilio
+
+HubSpot
+
+Ensure that removing these does not negatively impact the display or functionality of the remaining integrations on the page.
+
+Fix GoHighLevel (GHL) Integration Functionality:
+
+The existing GoHighLevel integration displayed on the /settings/integrations page is currently non-functional.
+
+Refer to the official GoHighLevel Integrations API documentation: https://highlevel.stoplight.io/docs/integrations to understand the correct implementation requirements.
+
+Analyze Existing Code: Review the current frontend code (for input fields, display logic) and backend code (API key handling, connection logic, API calls) related to the GHL integration.
+
+Implement Correct Setup:
+
+Based on the GHL documentation, determine the necessary configuration fields required on the frontend (e.g., likely an API Key input, potentially others like Location ID).
+
+Ensure the frontend form correctly captures these required fields.
+
+Update the backend endpoint that receives the GHL configuration data.
+
+Implement secure storage for the GHL API Key and any other necessary credentials on the backend.
+
+Implement backend logic to validate the provided GHL credentials. This typically involves making a test API call to a GHL endpoint (e.g., fetching authorized locations or user info) using the provided API Key. Refer to the GHL docs for suitable validation endpoints.
+
+Update the frontend to clearly display the connection status (e.g., "Connected", "Disconnected", "Error: Invalid API Key") based on the validation result from the backend.
+
+Ensure the overall setup process (entering key, saving, validating) is seamless for the user.
+
+Context:
+
+Target Page: /settings/integrations
+
+Problematic Integration: GoHighLevel (needs fixing)
+
+Integrations to Remove: Mailchimp, Zapier, Slack, Twilio, HubSpot
+
+GoHighLevel Documentation: https://highlevel.stoplight.io/docs/integrations (Use this as the primary reference for fixing GHL).
+
+Please ensure the code changes are clean, follow existing project conventions, and do not introduce new errors.
+
+Why this prompt works well for Replit AI:
+
+Clear Target: Specifies the exact project URL.
+
+Specific Actions: Uses action verbs like "Remove," "Identify," "Fix," "Implement," "Analyze," "Refer."
+
+Detailed Instructions: Breaks down complex tasks (like fixing GHL) into smaller, logical steps (analyze, check docs, implement frontend, implement backend, validate, update status).
+
+Context Provided: Clearly lists the page, the apps to remove, the app to fix, and crucially, the documentation link for the fix.
+
+Focus on Code: Directs the AI to modify code (UI elements, frontend/backend logic, API handling).
+
+Implicit Goal: The overall goal of having a cleaned-up settings page with a working GHL integration is clear.
+
+Constraints/Best Practices: Mentions clean code and avoiding new errors.

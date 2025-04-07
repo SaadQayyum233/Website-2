@@ -1,0 +1,29 @@
+Subject: Follow-up: Refactoring "Connect Custom Webhook" Modal - No UI Change Observed
+
+Previous Goal: My last prompt (pasted below for reference) detailed a required refactoring of the "Connect Custom Webhook" feature (https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/). The goal was to replace the current confusing modal with a user-friendly interface that clearly separates the configuration for receiving data (Incoming) and sending data (Outgoing), presenting distinct fields and testing methods for each.
+
+Observation: Despite the extensive actions taken in the previous session (including editing IntegrationSetupWizard.tsx, IncomingWebhookSetup.tsx, OutgoingWebhookSetup.tsx, adding database schema changes, creating API routes, and debugging), the frontend UI for the "Connect Custom Webhook" modal appears completely unchanged.
+
+It still does not present an initial choice between "Receive Data" and "Send Data".
+
+It still shows the same confusing mix of fields regardless of intent (e.g., "Your Webhook URL" shown alongside fields only relevant for sending data, multiple "Webhook Name" fields).
+
+The required separation and distinct UI flows outlined in the previous prompt have not been implemented visually.
+
+Request:
+
+Re-evaluate the implementation: Please review the previous attempt. It seems the modifications made did not correctly update the user-facing component (IntegrationSetupWizard.tsx or whichever component actually renders the custom webhook modal shown in the screenshots).
+
+Implement the UI Refactoring: Please strictly follow the implementation steps from the previous prompt to modify the frontend component responsible for the Custom Webhook modal:
+
+Implement the initial mandatory choice between "Receive Data" and "Send Data".
+
+Implement conditional rendering to show only the relevant UI fields for the selected mode (Incoming vs. Outgoing), as detailed in the previous prompt.
+
+Ensure the correct testing mechanisms are presented for each mode (instructions for incoming, "Test Connection" button for outgoing).
+
+Remove the old, incorrect UI structure and fields.
+
+Connect Backend (If Necessary): Ensure any backend changes made previously (like the webhooks table and routes) are correctly connected to support this new, separated frontend structure.
+
+Focus: The primary issue now is the lack of frontend UI changes. Please prioritize correctly implementing the visual separation and distinct configuration flows within the modal as described in the original prompt.

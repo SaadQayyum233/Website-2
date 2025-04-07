@@ -1,0 +1,172 @@
+Develop the API Integration Management section within our existing React SaaS application (located at the /settings/integrations route). This UI component must allow users to easily view available app integrations, search for them, and initiate the connection/configuration process in an interactive and user-friendly manner. The design should draw inspiration from the provided HTML example (visual list of apps with icons, names, badges, and search functionality) and be built for extensibility to easily accommodate new integrations in the future.
+
+I. Technology Stack & Location:
+
+Framework: React (using the existing setup in this Replit project).
+
+Routing: This UI will render when the user navigates to /settings/integrations via react-router-dom.
+
+UI Library: Continue using the established UI library (MUI, Chakra UI, or Tailwind CSS).
+
+State Management: Use appropriate React state (useState, useReducer, or Context/Zustand if complex state sharing is needed).
+
+API Calls: Use axios or fetch for interactions with the backend.
+
+II. Core UI Components & Structure (IntegrationsSettingsPage.jsx):
+
+Main Layout: The page should fit within the existing AppLayout (with the persistent dark sidebar).
+
+Search Bar (AppSearch.jsx):
+
+A prominent search input field at the top.
+
+Placeholder text like "Search apps...".
+
+As the user types, it should filter the list of available apps displayed below in real-time.
+
+Available Apps List (AppList.jsx):
+
+A scrollable container displaying the available integrations.
+
+Utilize a data-driven approach. Fetch the list of available apps from a backend API endpoint (e.g., GET /api/integrations/available-apps). Initially, you can use a hardcoded array of app objects for development if the backend isn't ready.
+
+Data Structure for Apps (Example): The backend (or hardcoded data) should provide an array of objects, each representing an app:
+
+[
+  {
+    id: 'ghl',
+    name: 'GoHighLevel',
+    iconUrl: '/icons/ghl.png', // Path to the icon asset
+    backgroundColor: '#4CAF50', // Optional: for icon background
+    type: 'oauth', // 'oauth', 'apikey', 'webhook', 'builtin'
+    description: 'Connect your GoHighLevel account.',
+    category: 'CRM',
+    badges: ['Verified', 'Core'], // e.g., ['Built-in'], ['Verified']
+    configurationFields: [ // Fields needed for setup modal
+       // For apikey: { name: 'api_key', label: 'API Key', type: 'password' }, { name: 'subdomain', label: 'Subdomain', type: 'text'}
+       // For oauth: {} // OAuth handled via button redirect
+       // For webhook: { displayOnly: true, type: 'webhook_url', label: 'Webhook URL' }
+    ]
+  },
+  {
+    id: 'openai',
+    name: 'OpenAI (ChatGPT, Whisper, DALL-E)',
+    iconUrl: '/icons/openai.png',
+    backgroundColor: '#10A37F',
+    type: 'apikey',
+    description: 'Integrate with OpenAI models.',
+    category: 'AI',
+    badges: ['Verified'],
+    configurationFields: [
+      { name: 'api_key', label: 'API Key', type: 'password', required: true }
+    ]
+  },
+  // Add more apps like Google Sheets, Slack, Generic Webhook, HTTP etc.
+]
+Use code with caution.
+JavaScript
+App Item Rendering (AppListItem.jsx):
+
+Each app in the list should be rendered as a clickable item.
+
+Visual Style: Mimic the HTML example:
+
+Circular App Icon (imt-app-icon style): Use the iconUrl and backgroundColor.
+
+App Name (span).
+
+Badges (app-search-badge style): Display badges like "Verified", "Built-in", "Core" based on the badges array. Style them distinctively (colors, icons like shields).
+
+Make the entire item visually responsive to hover effects.
+
+III. Interactivity & Configuration Flow:
+
+Clicking an App: When a user clicks on an AppListItem:
+
+Open a Modal dialog (IntegrationConfigModal.jsx).
+
+Pass the selected app's data object ({ id, name, type, configurationFields, ... }) to the modal.
+
+Configuration Modal (IntegrationConfigModal.jsx):
+
+Dynamic Content: The modal's content must adapt based on the selected app's type and configurationFields.
+
+Header: Display the App Icon and Name.
+
+Form Fields (based on configurationFields):
+
+If type is 'apikey': Render input fields for each item in configurationFields (e.g., text input for Subdomain, password input for API Key). Use the label and required properties.
+
+If type is 'oauth': Display a prominent "Connect [App Name]" button. Clicking this button should initiate the OAuth 2.0 flow by redirecting the user (or opening a popup window) to the appropriate backend endpoint (e.g., GET /api/auth/[app_id]/initiate) which then handles the redirect to the provider. Provide instructions if necessary.
+
+If type is 'webhook': Display the dynamically generated webhook URL specific to this user/integration (fetched from or constructed based on backend logic, e.g., https://<your-replit-app>/webhooks/incoming/[app_id]/[user_specific_token]). Include a "Copy URL" button. Provide clear instructions on where the user needs to paste this URL in the external application.
+
+If type is 'builtin': May not require configuration, or might have simple settings. Display relevant information or simple form fields.
+
+Action Buttons: Include "Cancel" and "Save Connection" (or "Connect" for OAuth) buttons.
+
+Saving the Connection:
+
+Clicking "Save Connection" (for API keys, etc.) should:
+
+Gather the form data (API keys, settings).
+
+Make a secure POST request to a backend endpoint (e.g., POST /api/integrations/connections) sending the app id and the collected credentials/settings.
+
+CRITICAL: Do NOT store sensitive API keys or secrets directly in React state longer than necessary for the request. The backend is responsible for securely storing and managing these credentials.
+
+Provide user feedback (loading state, success message, or error message). Close the modal on success.
+
+The OAuth flow will typically involve backend handling of the callback and saving the connection upon successful authorization. The modal might just close or show a success state after the backend confirms completion.
+
+IV. Displaying Connected Integrations:
+
+(Optional but Recommended): On the /settings/integrations page, consider adding a section above the available apps list to display integrations that the user has already successfully connected.
+
+Fetch this list from the backend (e.g., GET /api/integrations/connections).
+
+Display each connected app with its icon, name, status (e.g., "Connected"), and potentially "Edit" or "Disconnect" buttons.
+
+V. Extensibility:
+
+The entire UI for adding apps MUST be driven by the data fetched from GET /api/integrations/available-apps.
+
+Adding a new integration in the future should primarily involve:
+
+Adding the new app's metadata to the list returned by the backend endpoint.
+
+Ensuring the IntegrationConfigModal can handle any new type or configurationFields required by the new app (if they differ from existing patterns like 'apikey', 'oauth', 'webhook').
+
+Implementing the corresponding backend logic for authentication and API interaction for the new app.
+
+VI. Validation Checklist (AI Must Confirm):
+
+Before generating code, confirm you understand and will implement the following:
+
+The UI will be built in React for the /settings/integrations route.
+
+A searchable, scrollable list of available apps will be displayed, fetched from a (potentially mocked) backend endpoint (GET /api/integrations/available-apps).
+
+Each app item (AppListItem) will display an icon, name, and badges, styled similarly to the provided HTML example.
+
+Clicking an app opens a dynamic configuration modal (IntegrationConfigModal).
+
+The modal content adapts based on the app type ('apikey', 'oauth', 'webhook', 'builtin') and configurationFields.
+
+OAuth flow initiation happens via a button redirect handled by the backend.
+
+API keys/settings are collected in the modal and sent securely to a backend endpoint (POST /api/integrations/connections) – NOT stored in frontend state.
+
+Webhook URLs are displayed with a copy button.
+
+The design emphasizes data-driven rendering to ensure future extensibility.
+
+Expected Output:
+
+React components: IntegrationsSettingsPage.jsx, AppSearch.jsx, AppList.jsx, AppListItem.jsx, IntegrationConfigModal.jsx.
+
+Placeholder functions for fetching available apps (fetchAvailableApps) and saving connections (saveConnection).
+
+Basic implementation of the dynamic modal logic based on app type.
+
+Styling (using the project's chosen library) applied to components to mimic the look and feel of the reference HTML snippet.

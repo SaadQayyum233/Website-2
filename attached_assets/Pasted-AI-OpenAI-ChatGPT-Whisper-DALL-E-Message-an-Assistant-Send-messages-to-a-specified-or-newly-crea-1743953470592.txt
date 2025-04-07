@@ -1,0 +1,55 @@
+AI
+OpenAI (ChatGPT, Whisper, DALL-E)
+Message an Assistant
+Send messages to a specified or newly created thread and execute it seamlessly. This action can send the arguments for your function calls to the specified URLs (POST HTTP method only). Works with Assistants v2.
+OpenAI (ChatGPT, Whisper, DALL-E)
+Create a Completion (Prompt) (GPT and o1, o3 Models)
+Creates a completion for a prompt or chat.
+OpenAI (ChatGPT, Whisper, DALL-E)
+Transform Text to Structured Data
+Identifies information in a prompt's text and returns it as structured data.
+OpenAI (ChatGPT, Whisper, DALL-E)
+Analyze Images (Vision)
+Analyzes images according to specified instructions.
+OpenAI (ChatGPT, Whisper, DALL-E)
+Generate an Image
+Generates an image using DALL-E.
+OpenAI (ChatGPT, Whisper, DALL-E)
+Edit an Image
+Edits or extends an image.
+OpenAI (ChatGPT, Whisper, DALL-E)
+Create a Translation (Whisper)
+Translates an audio to English.
+OpenAI (ChatGPT, Whisper, DALL-E)
+Create a Transcription (Whisper)
+Transcribes an audio to text.
+OpenAI (ChatGPT, Whisper, DALL-E)
+Create a Moderation
+Qualifies whether the provided image or text(s) contains violent, hateful, illicit or adult content.
+OpenAI (ChatGPT, Whisper, DALL-E)
+Generate an Audio
+Generates an audio file based on text input and settings.
+Files
+OpenAI (ChatGPT, Whisper, DALL-E)
+Add Files to a Vector Store
+Adds files to a specified vector store or, if not specified, creates a new vector store based on the configuration.
+OpenAI (ChatGPT, Whisper, DALL-E)
+Upload a File
+Uploads a file to be used across the OpenAI platform.
+Batches
+OpenAI (ChatGPT, Whisper, DALL-E)
+List Batches
+Retrieves a list of batches.
+OpenAI (ChatGPT, Whisper, DALL-E)
+Get a Batch
+Retrieves details of the specified batch.
+OpenAI (ChatGPT, Whisper, DALL-E)
+Create a Batch
+Creates and executes a batch of API calls.
+OpenAI (ChatGPT, Whisper, DALL-E)
+Cancel a Batch
+Cancels an "in-progress" batch. The batch will be in status "cancelling" for up to 10 minutes, before changing to "cancelled", where it will have partial results (if any) available in the output file.
+Other
+OpenAI (ChatGPT, Whisper, DALL-E)
+Make an API Call
+Performs an arbitrary authorized API call.

@@ -1,0 +1,33 @@
+[vite] connecting...
+[vite] connected.
+Warning: validateDOMNesting(...): <a> cannot appear as a descendant of &lt;a&gt;.
+    at a
+    at a
+    at https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=a3b29579:337:18
+    at NavItem (https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/src/components/layout/Sidebar.tsx:60:5)
+    at div
+    at nav
+    at aside
+    at Sidebar (https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/src/components/layout/Sidebar.tsx:37:22)
+    at div
+    at AppLayout (https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/src/components/layout/AppLayout.tsx:18:22)
+    at Router
+    at QueryClientProvider (https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=a3b29579:2805:3)
+    at App
+at a
+at a
+at https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=a3b29579:337:18
+at NavItem (https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/src/components/layout/Sidebar.tsx:60:5)
+at div
+at nav
+at aside
+at Sidebar (https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/src/components/layout/Sidebar.tsx:37:22)
+at div
+at AppLayout (https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/src/components/layout/AppLayout.tsx:18:22)
+at Router
+at QueryClientProvider (https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=a3b29579:2805:3)
+at App
+at t.value (https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400

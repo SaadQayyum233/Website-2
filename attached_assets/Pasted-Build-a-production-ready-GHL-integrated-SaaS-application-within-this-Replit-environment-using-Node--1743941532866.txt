@@ -1,0 +1,311 @@
+Build a production-ready, GHL-integrated SaaS application within this Replit environment using Node.js and Express. The primary function is advanced email automation, leveraging AI for experimentation, managing priority email sequences, and providing detailed analytics, all tightly synced with a user's GoHighLevel account. Adhere strictly to the architecture, database schema, API specifications, and workflow logic outlined below. Do not introduce alternative structures or omit specified features.
+
+I. System Architecture Overview:
+
+The system centralizes email management, contact data, and user settings. Key components include:
+
+GHL Integration Layer: Handles secure OAuth 2.0 authentication, fetches/updates data via GHL REST APIs, and processes incoming GHL webhooks in real-time.
+
+Core Application Logic (Node.js/Express): Manages API endpoints, background jobs (like priority email sending), and coordinates interactions between the database, GHL, and the AI service.
+
+Database (SQLite): Persists all application data, including synced contacts, unified email records (templates, priority, experiments), delivery stats, and user configuration (Avatar, ICP). Uses the optimized schema defined below.
+
+AI Engine Integration (OpenAI): Generates email variations (subjects, body copy) for experiments based on user-defined ICP and Avatar settings.
+
+User Interface (Minimum: CLI, Optional: React Web Dashboard): Allows users to configure settings, manage emails, trigger actions, and view reports.
+
+II. Core Features & Functionality (Mandatory Implementation):
+
+GHL Contact Synchronization:
+
+Implement secure GHL OAuth 2.0 flow for user authentication and token management (including refresh). Store credentials securely (Replit Secrets).
+
+Provide an API endpoint (/api/ghl/sync-contacts) and a recurring job (e.g., every 1-6 hours) to fetch contacts from GHL (GET /v1/contacts).
+
+Upsert contact data into the contacts table, mapping relevant GHL fields (email, name, custom fields) and initializing tags and last_email_sequence.
+
+Process contact.created, contact.updated, contact.deleted webhooks from GHL to maintain near real-time sync with the contacts table.
+
+Unified Email Management:
+
+Use a single emails table with a type field (template, priority, experiment) as defined in the schema.
+
+Provide API endpoints (POST /api/emails, GET /api/emails, PUT /api/emails/:id, DELETE /api/emails/:id) to manage these email records.
+
+When creating priority emails, allow setting start_date and end_date. Increment version automatically if an email with the same logical grouping exists.
+
+When creating experiment emails, link them to a base template/email ID if applicable.
+
+Priority Email Workflow:
+
+Utilize the tags JSON field on the contacts table (e.g., tag contacts with "priority_group_A"). Do not use a separate temporary table.
+
+Provide an API endpoint (POST /api/emails/:id/send) that accepts a tag parameter.
+
+This endpoint retrieves all contacts matching the specified tag from the contacts table.
+
+For each matched contact, send the specified priority email (:id) via the GHL Email API (POST /v1/emails or similar). Ensure GHL API rate limits are handled gracefully (e.g., queueing, delays).
+
+Log each send attempt in the email_deliveries table with status: 'sent'.
+
+Optional: Implement logic to remove the specific tag from the contact after a successful send, if required by the workflow.
+
+Implement a recurring background job (e.g., every 5 minutes) to check for active priority emails (based on start_date, end_date) and automatically trigger sending to contacts tagged appropriately.
+
+AI-Powered Email Experimentation:
+
+Integrate with the OpenAI API (use openai npm package). Securely store API key in Replit Secrets.
+
+Provide an API endpoint (POST /api/emails/:id/generate-variants) that:
+
+Takes an existing email ID (:id) as a base.
+
+Retrieves user's avatar and icp data from the user_settings table.
+
+Constructs a prompt for OpenAI to generate N variations (subject lines, body copy, key angles) based on the base email and user settings.
+
+Stores the generated variations in the experiment_variants table, linked to the parent experiment type email in the emails table. Include the AI parameters used (prompt, model) in ai_parameters JSON field.
+
+Allow sending these variants via the standard /api/emails/:variant_id/send mechanism (treating variants like distinct emails for sending/tracking).
+
+Email Delivery Tracking & Analytics:
+
+Implement a webhook endpoint (POST /api/webhooks/ghl) to receive GHL email events (email.delivered, email.opened, email.clicked, email.bounced, email.complained).
+
+Validate incoming webhooks using GHL's signing mechanism (if available/applicable) for security.
+
+Update the corresponding record in the email_deliveries table based on the webhook event (update status, timestamp).
+
+If an email.opened or email.clicked event occurs for a specific email type (e.g., priority), implement logic to add relevant tags (e.g., "high_intent", "clicked_priority_offer") to the contact's tags field in the contacts table.
+
+User Settings (Avatar & ICP):
+
+Provide API endpoints (GET /api/settings, PUT /api/settings) to manage user-specific settings stored in the user_settings table (Avatar bio, company, inspiration; ICP fears, pain points, transformations, objectives). This data is crucial for the AI engine.
+
+III. Database Schema (SQLite - Must use this exact structure):
+
+-- Contacts (Stores synced GHL contacts with enhancements)
+CREATE TABLE IF NOT EXISTS contacts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ghl_id VARCHAR(255) UNIQUE, -- GoHighLevel Contact ID
+  email VARCHAR(255) NOT NULL,
+  name TEXT,
+  tags JSON DEFAULT '[]', -- Stores array of strings, e.g., ["priority_group_A", "high_intent"]
+  custom_fields JSON, -- Store relevant GHL custom fields
+  last_email_sequence INTEGER DEFAULT 0, -- Track sequence progress if needed
+  joined_date TIMESTAMP,
+  contact_source TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Unified Emails Table (Templates, Priority Emails, Experiments)
+CREATE TABLE IF NOT EXISTS emails (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER, -- Link to a future users table if multi-tenant
+  type TEXT CHECK(type IN ('template', 'priority', 'experiment')) NOT NULL,
+  name TEXT, -- User-friendly name for the email/template/experiment
+  subject TEXT,
+  body_html TEXT,
+  body_text TEXT, -- Plain text version
+  key_angle TEXT, -- Concept from Draw.io
+  version INTEGER DEFAULT 1,
+  base_email_id INTEGER REFERENCES emails(id), -- For experiments based on a template
+  start_date TIMESTAMP, -- For priority/scheduled emails
+  end_date TIMESTAMP, -- For priority emails
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Experiment Variants (Generated by AI)
+CREATE TABLE IF NOT EXISTS experiment_variants (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email_id INTEGER NOT NULL REFERENCES emails(id), -- Links to the parent 'experiment' email
+  variant_letter TEXT, -- e.g., 'A', 'B', 'C'
+  subject TEXT,
+  body_html TEXT,
+  body_text TEXT,
+  key_angle TEXT,
+  ai_parameters JSON, -- Store info like model used, prompt, temperature
+  -- Performance metrics can be added later or calculated dynamically
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Email Deliveries (Tracks individual sends and interactions)
+CREATE TABLE IF NOT EXISTS email_deliveries (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email_id INTEGER NOT NULL REFERENCES emails(id), -- Which email was sent
+  variant_id INTEGER REFERENCES experiment_variants(id), -- Which specific variant, if applicable
+  contact_id INTEGER NOT NULL REFERENCES contacts(id), -- Who received it
+  ghl_message_id VARCHAR(255), -- Store GHL's ID for correlation if possible
+  status TEXT CHECK(status IN ('queued', 'sent', 'delivered', 'opened', 'clicked', 'bounced', 'complained', 'unsubscribed', 'failed')) DEFAULT 'queued',
+  sent_at TIMESTAMP,
+  delivered_at TIMESTAMP,
+  opened_at TIMESTAMP,
+  clicked_at TIMESTAMP,
+  bounced_at TIMESTAMP,
+  complained_at TIMESTAMP,
+  unsubscribed_at TIMESTAMP,
+  error_message TEXT, -- Store reason for failure/bounce
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_email_deliveries_contact_email ON email_deliveries (contact_id, email_id);
+
+-- User Settings (For AI Personalization)
+CREATE TABLE IF NOT EXISTS user_settings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER UNIQUE, -- Link to a future users table
+  avatar_name TEXT,
+  avatar_bio TEXT,
+  avatar_company_name TEXT,
+  avatar_inspiration_name TEXT,
+  avatar_role TEXT,
+  avatar_website TEXT,
+  email_signature_html TEXT,
+  icp_fears TEXT,
+  icp_pain_points TEXT,
+  icp_insecurities TEXT,
+  icp_transformations TEXT, -- Success stories
+  icp_description TEXT, -- Ideal Customer Profile summary
+  icp_key_objectives TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Optional: Error Logs
+CREATE TABLE IF NOT EXISTS error_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  context TEXT, -- e.g., 'GHL Sync', 'Priority Send Job'
+  error_message TEXT,
+  stack_trace TEXT,
+  payload JSON -- Relevant data at the time of error
+);
+Use code with caution.
+SQL
+IV. API Endpoint Specifications (RESTful):
+
+/api/auth/ghl (GET): Initiate GHL OAuth flow.
+
+/api/auth/ghl/callback (GET): Handle GHL OAuth callback.
+
+/api/ghl/sync-contacts (POST): Manually trigger contact sync.
+
+/api/emails (POST, GET): Create/List emails (all types).
+
+/api/emails/:id (GET, PUT, DELETE): Manage specific email.
+
+/api/emails/:id/send (POST): Send email :id to contacts matching ?tag=priority_tag.
+
+/api/emails/:id/generate-variants (POST): Trigger AI generation for experiment email :id.
+
+/api/settings (GET, PUT): Manage user settings (Avatar, ICP).
+
+/api/webhooks/ghl (POST): Receive GHL webhooks.
+
+/api/contacts (GET): List contacts (with filtering/pagination by tag, email, etc.).
+
+/api/contacts/:id/tags (PUT): Add/remove tags for a specific contact.
+
+/api/analytics/emails/:id (GET): Get aggregated stats for an email (opens, clicks).
+
+V. Key Workflow Logic Implementation Details:
+
+Tag-Based Sending: Ensure the /api/emails/:id/send logic correctly queries contacts based on the provided tag using JSON functions in SQLite.
+
+Webhook Processing: Implement robust parsing and error handling for GHL webhooks. Update contacts (tags) and email_deliveries (status, timestamps) reliably.
+
+AI Prompt Engineering: In the AI integration, create effective prompts using the user_settings data (ICP, Avatar) to guide OpenAI towards generating relevant email variations. Store the used parameters.
+
+Background Jobs: Use a simple scheduler (like node-cron or Replit's built-in cron functionality if available) for recurring tasks (Contact Sync, Priority Email Sending). Ensure jobs don't overlap and handle failures gracefully (log to error_logs).
+
+VI. User Interface Requirements:
+
+Minimum Viable Product: A Command Line Interface (CLI) built with Node.js (e.g., using commander or yargs) providing commands for:
+
+app sync-contacts
+
+app create-email --type=priority --subject="Subject" --body="Body" --tag=urgent
+
+app send-priority --email-id=123 --tag=urgent
+
+app list-contacts --tag=high_intent
+
+app update-settings --icp-pain-points="New points"
+
+app generate-variants --email-id=456
+
+Optional Enhancement: A web-based dashboard using React (or similar framework) served by the Express app, providing a visual interface for all CLI functionalities.
+
+VII. Technology Stack & Setup:
+
+Language/Runtime: Node.js (Latest LTS)
+
+Framework: Express.js
+
+Database: SQLite (using sqlite3 npm package)
+
+Key NPM Packages: express, sqlite3, axios, body-parser, cors, dotenv, @highlevelhub/oauth-client (or handle OAuth manually with axios), openai, node-cron (for background jobs), jsonwebtoken (if implementing user sessions).
+
+Initial Setup Commands for Replit Shell:
+
+npm init -y
+npm install express sqlite3 axios body-parser cors dotenv @highlevelhub/oauth-client openai node-cron jsonwebtoken
+mkdir api core db middleware jobs utils config
+touch server.js .env .gitignore
+touch db/database.js db/schema.sql
+touch api/ghlRoutes.js api/emailRoutes.js api/contactRoutes.js api/settingRoutes.js api/webhookRoutes.js
+touch core/ghlService.js core/emailService.js core/aiService.js
+touch jobs/contactSync.js jobs/prioritySender.js
+touch config/dbConfig.js config/ghlConfig.js config/openaiConfig.js
+Use code with caution.
+Bash
+VIII. Security & Error Handling:
+
+Use dotenv and Replit Secrets to manage all API keys (GHL Client Secret, OpenAI Key) and sensitive configuration. Never commit secrets to Git.
+
+Implement proper error handling in API routes and background jobs. Log detailed errors to the error_logs table or Replit's console.
+
+Validate all incoming request payloads (especially from webhooks).
+
+Handle potential GHL API rate limits.
+
+Implement basic input sanitization where necessary.
+
+IX. Validation Checklist (AI Must Confirm):
+
+Before generating code, confirm you understand and will implement the following:
+
+The unified emails table structure will be used, not separate tables per type.
+
+Contact prioritization/segmentation will use the tags JSON field on the contacts table, not a temporary table.
+
+GHL Webhooks will update both email_deliveries status/timestamps AND contacts tags based on email interactions.
+
+AI generation will use user_settings (ICP/Avatar) data for prompts and store results in experiment_variants.
+
+API endpoints and database schema match the specifications provided exactly.
+
+Background jobs for sync and priority sending will be implemented using node-cron or similar.
+
+Secure credential management using Replit Secrets/.env is assumed.
+
+Expected Output:
+
+A functional Replit Node.js/Express project structured according to the touch commands above, with:
+
+Working GHL OAuth 2.0 authentication flow.
+
+Database setup (db/database.js, db/schema.sql) matching the specified schema.
+
+Implemented API routes (api/ directory) with placeholder logic connecting to service modules.
+
+Core service logic (core/ directory) for GHL interactions, email management, and AI calls (initially placeholders or basic implementations).
+
+Background job setup (jobs/ directory).
+
+Configuration files (config/ directory) ready for API keys (loaded from .env).
+
+A basic CLI interface (or structure for it).

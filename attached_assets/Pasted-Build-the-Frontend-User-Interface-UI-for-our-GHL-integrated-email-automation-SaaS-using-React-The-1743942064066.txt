@@ -1,0 +1,203 @@
+Build the Frontend User Interface (UI) for our GHL-integrated email automation SaaS using React. The UI must feature a persistent left-hand sidebar for navigation, similar in style and layout to the GoHighLevel interface (as shown in the provided screenshot - dark sidebar, lighter main content area). The UI must be highly functional, user-friendly (UI/UX optimized), and seamlessly integrate with the backend API endpoints previously defined.
+
+I. Technology Stack & Setup:
+
+Framework: React (using Create React App or Vite setup within Replit).
+
+Routing: react-router-dom for client-side routing (no full page reloads on navigation).
+
+UI Library (Recommended): Utilize a component library like MUI (Material UI) or Chakra UI to achieve a professional look and feel efficiently and ensure component consistency. Alternatively, use Tailwind CSS for utility-first styling if preferred.
+
+Data Tables: Implement data tables using a robust library like TanStack Table (React Table v8) to handle sorting, filtering, and column visibility effectively.
+
+Charting (for Dashboard): Use a library like recharts or chart.js (with its React wrapper) for displaying statistics.
+
+State Management: Use React Context API or Zustand for managing global state like user authentication status or shared UI state if needed. Local component state is fine for most views initially.
+
+Initial Setup: Initialize a React project in Replit and install necessary dependencies: react-router-dom, @mui/material @emotion/react @emotion/styled (if using MUI), @chakra-ui/react @emotion/react @emotion/styled framer-motion (if using Chakra), tailwindcss (if using Tailwind), @tanstack/react-table, recharts, axios (for API calls).
+
+II. Core UI Structure & Layout:
+
+Main Layout: Create a primary layout component (AppLayout.jsx) that includes:
+
+A fixed/sticky Left Sidebar component (Sidebar.jsx) with a defined width.
+
+A main Content Area component that renders the content of the currently active route.
+
+Styling: Mimic the GHL aesthetic:
+
+Sidebar: Dark background, light text/icons.
+
+Content Area: Lighter background.
+
+Use consistent padding, margins, and typography.
+
+III. Left Sidebar Navigation (Sidebar.jsx):
+
+Visual Style: Vertical navigation bar, always visible on the left side.
+
+Content: Implement the following navigation sections and links, styled like buttons or list items. Use appropriate icons (e.g., from MUI Icons or a similar library). Each link MUST use NavLink from react-router-dom to handle active states and client-side navigation.
+
+[App Logo/Name at the top]
+
+Dashboard (Links to /)
+
+--- (Separator/Heading) ---
+
+DATA MANAGEMENT (Heading)
+
+Contacts (Links to /contacts)
+
+Emails (Links to /emails) (Manages Templates, Priority, Experiments)
+
+--- (Separator/Heading) ---
+
+ANALYTICS (Heading)
+
+Statistics (Links to /analytics/statistics)
+
+Performance (Links to /analytics/performance)
+
+Experiments (Links to /analytics/experiments)
+
+--- (Separator/Heading) ---
+
+ADMINISTRATION (Heading)
+
+Webhooks/API (Links to /settings/integrations)
+
+User Profile (Links to /settings/profile) (For Avatar/ICP)
+
+(Optional) Billing (Links to /settings/billing - if applicable later)
+
+--- (Separator/Heading) ---
+
+Refresh Data (This should be a button/link that triggers an API call, e.g., to POST /api/ghl/sync-contacts, and provides user feedback - e.g., a loading indicator and success/error message. It might not navigate away).
+
+[User Profile/Logout at the bottom]
+
+Functionality: All navigation links must correctly update the main Content Area via React Router without causing a full page refresh. Active links should be visually highlighted.
+
+IV. Page/View Components & Routing (App.js or Routes.jsx):
+
+Define routes using react-router-dom that map the sidebar links to specific React components:
+
+/: DashboardPage.jsx
+
+/contacts: ContactsPage.jsx
+
+/emails: EmailsPage.jsx
+
+/analytics/statistics: StatisticsPage.jsx
+
+/analytics/performance: PerformancePage.jsx
+
+/analytics/experiments: ExperimentsPage.jsx
+
+/settings/integrations: IntegrationsSettingsPage.jsx
+
+/settings/profile: ProfileSettingsPage.jsx
+
+(Add other routes as needed)
+
+Ensure routes are nested within the main layout so the sidebar persists.
+
+V. Data Table Implementation (DataTable.jsx Component & Pages):
+
+Reusable Component: Create a generic DataTable.jsx component using TanStack Table (React Table v8).
+
+Props: It should accept data (array of objects) and columns (array defining column configuration) as props.
+
+Features (Must be functional):
+
+Sorting: Clicking on column headers should sort the data ascending/descending for that column.
+
+Filtering: Implement basic filtering (e.g., a search input per column or a global search bar for the table).
+
+Column Visibility/Pinning:
+
+Display a maximum of 6 columns by default.
+
+Include a Dropdown button (labeled "Columns" or similar) placed clearly near the table.
+
+This dropdown should list all available columns for the current dataset with checkboxes.
+
+Users must be able to check/uncheck columns to show/hide them in the table instantly.
+
+Include "Pin/Unpin All" or "Show All"/"Hide All" options in the dropdown for convenience.
+
+The table should dynamically resize/adjust to show the selected columns.
+
+Integration: Pages like ContactsPage.jsx and EmailsPage.jsx will:
+
+Fetch data from their respective backend API endpoints (e.g., GET /api/contacts, GET /api/emails) using axios or fetch within a useEffect hook.
+
+Define the columns configuration for TanStack Table, specifying headers, accessor keys, and potentially initial visibility.
+
+Pass the fetched data and defined columns to the reusable DataTable.jsx component.
+
+Handle loading states (show a spinner/skeleton) and error states (show an error message).
+
+VI. Dashboard Page (DashboardPage.jsx):
+
+Homepage: This is the default view when the user logs in or navigates to /.
+
+Content: Display key email statistics. Fetch summary data from relevant backend analytics endpoints (you may need to define these, e.g., GET /api/analytics/summary).
+
+Visualization: Use charting components (e.g., from recharts) to show metrics like:
+
+Total Emails Sent (by type: priority, experiment)
+
+Overall Open Rate (%)
+
+Overall Click-Through Rate (%)
+
+Maybe a time-series chart of activity.
+
+Layout: Present the stats clearly using cards, graphs, and summary numbers.
+
+VII. User Experience (UX) & Design:
+
+Intuitive Navigation: Sidebar structure should be logical and easy to understand.
+
+Clarity: Table data should be readable. Use appropriate formatting for dates, statuses, etc.
+
+Responsiveness: While desktop-first is acceptable, ensure the layout doesn't completely break on smaller screens (basic responsiveness).
+
+Feedback: Provide visual feedback for actions like data refreshing, saving settings, loading data (spinners), and errors.
+
+VIII. Validation Checklist (AI Must Confirm):
+
+Before generating code, confirm you understand and will implement the following:
+
+The UI framework is React with react-router-dom for routing.
+
+A persistent Left Sidebar matching the GHL style and specified navigation links will be created.
+
+Navigation uses client-side routing (NavLink), updating the content area without full reloads.
+
+Pages like Contacts/Emails will feature a DataTable component.
+
+The DataTable will use TanStack Table (React Table v8) and include functional sorting, filtering, and column visibility control (dropdown, max 6 default columns, pin/unpin).
+
+The Homepage (/) will be a Dashboard displaying charts/stats fetched from the backend.
+
+A UI component library (MUI, Chakra, or Tailwind) will be used for styling.
+
+API calls to the backend will be handled correctly (e.g., using axios in useEffect).
+
+Expected Output:
+
+A functional React frontend application in Replit with:
+
+Clear project structure (src/components, src/pages, src/layouts, src/hooks, src/services).
+
+Implemented AppLayout, Sidebar, and page components (DashboardPage, ContactsPage, etc.).
+
+A reusable, functional DataTable component meeting all requirements.
+
+Working client-side routing connecting the sidebar links to the correct pages.
+
+Basic styling applied using the chosen UI library/method, resembling the GHL look and feel.
+
+Placeholder API calls (axios.get('/api/contacts'), etc.) within page components, ready to connect to the backend.

@@ -1,0 +1,71 @@
+Action: Fix the non-functional "Connect GoHighLevel" integration modal in the Replit project https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/.
+
+Goal: Implement the necessary frontend UI interactions and backend logic to make both the "API Key" and "OAuth (Recommended)" connection methods fully functional, allowing users to successfully connect the application to GoHighLevel according to the steps outlined in the modal and the official GoHighLevel documentation.
+
+Reference Documentation: Use the GoHighLevel Integrations API documentation as the primary guide: https://highlevel.stoplight.io/docs/integrations
+
+Specific Implementation Steps:
+
+Enable Connection Method Selection:
+
+Ensure the "OAuth (Recommended)" and "API Key" tabs/buttons in Step 1 are interactive.
+
+Clicking "API Key" should reveal the necessary input fields for that method (see step 3).
+
+Clicking "OAuth (Recommended)" should correctly display the "Connect with OAuth" section and button.
+
+Implement OAuth Flow (Step 1 & 2 - Configure OAuth):
+
+Frontend: When "Continue with OAuth" is clicked, it should redirect the user to the correct GoHighLevel OAuth authorization URL. This requires fetching the Client ID and defining the necessary scopes (contacts.readonly, contacts.write, emails.send, etc. - determine required scopes from GHL docs based on desired functionality like contact sync/email sending) and the correct redirect_uri pointing back to this application.
+
+Backend:
+
+Implement a callback endpoint (/auth/gohighlevel/callback or similar) specified as the redirect_uri.
+
+This endpoint must handle the authorization code returned by GoHighLevel.
+
+Implement logic to exchange the code for an access_token and refresh_token using the application's Client ID and Client Secret (these must be stored securely, e.g., using Replit Secrets).
+
+Securely store the obtained tokens (access token, refresh token, expiry time) associated with the user or application instance.
+
+Implement logic to use the refresh_token to obtain new access_tokens when the current one expires.
+
+UI Feedback: After successful OAuth connection and token storage, update the modal UI to indicate a successful connection and allow progression to the next step (Set Up Webhooks).
+
+Implement API Key Flow (Step 1 & likely implies skipping OAuth-specific steps):
+
+Frontend: When the "API Key" tab is selected, display an input field prompting the user for their GoHighLevel API Key (specify if it should be an Agency key or Location key based on GHL docs and intended scope). Potentially also require a Location ID if using Location-specific keys or functionality.
+
+Backend:
+
+Create an endpoint to receive the submitted API Key (and Location ID, if required).
+
+Validate the API Key: Make a test API call to a simple GHL endpoint (e.g., retrieving authorized locations /locations/search, or user info /users/me) using the provided key in the Authorization: Bearer <API_KEY> header.
+
+Securely store the validated API Key (and Location ID) associated with the user/application instance.
+
+UI Feedback: Update the modal UI based on validation success (show "Connected", enable "Next") or failure (show error message "Invalid API Key"). If successful, allow progression, potentially skipping OAuth-specific steps directly to "Set Up Webhooks" or "Test & Save". Adjust the step indicator logic accordingly.
+
+Implement "Set Up Webhooks" (Step 3):
+
+Requirement: This step likely involves subscribing to events from GoHighLevel (e.g., contact created, contact updated).
+
+Frontend: Provide UI elements (e.g., checkboxes) for the user to select which GoHighLevel events they want to subscribe to.
+
+Backend:
+
+Implement an endpoint within this application to receive incoming webhook events from GoHighLevel (e.g., /webhooks/gohighlevel).
+
+Using the established connection (OAuth token or API Key), make API calls to GoHighLevel's webhook subscription endpoint (/webhooks/) to register the application's receiving endpoint URL for the events selected by the user. Refer to GHL docs for the correct API call structure.
+
+Store the webhook registration details.
+
+Implement "Test & Save" (Step 4):
+
+Perform final validation checks (e.g., re-verify API key/token validity, check webhook setup if applicable).
+
+Save the complete integration configuration status (Connected, connection type, tokens/key, webhook settings) securely in the database.
+
+Close the modal and update the main /settings/integrations page to show GoHighLevel as "Connected".
+
+Context: The current GoHighLevel connection modal is present but non-functional. It needs full implementation of both OAuth and API Key connection methods, including user interaction, backend API calls to GHL for validation/setup, secure credential storage, and progression through the indicated steps, all based on the official GoHighLevel integration documentation.

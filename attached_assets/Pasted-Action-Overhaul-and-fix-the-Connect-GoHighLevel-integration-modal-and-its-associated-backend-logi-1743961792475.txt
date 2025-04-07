@@ -1,0 +1,75 @@
+Action: Overhaul and fix the "Connect GoHighLevel" integration modal and its associated backend logic in the Replit project https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/.
+
+Goal: Implement a fully functional, interactive, step-by-step integration process within the modal for both the "API Key" and "OAuth (Recommended)" connection methods. This requires fixing both frontend UI interactions and backend processing so that options and relevant fields appear dynamically as the user progresses through the steps (Choose Method -> Configure -> Set Up Webhooks -> Test & Save), ultimately allowing a successful connection to GoHighLevel.
+
+Reference Documentation: Use the official GoHighLevel Integrations API documentation as the primary guide: https://highlevel.stoplight.io/docs/integrations
+
+Specific Step-by-Step Implementation (Frontend & Backend):
+
+Step 1: Choose Connection Method (Frontend Focus):
+
+Frontend: Make the "OAuth (Recommended)" and "API Key" tabs fully interactive. Clicking each tab must dynamically display only the relevant content below it (i.e., the "Connect with OAuth" section for OAuth, or the API Key input fields for API Key - these fields will be implemented in the next step but the container should appear/disappear correctly). Ensure the step indicator visually reflects this initial step.
+
+Step 2: Configure Connection (OAuth or API Key):
+
+OAuth Path:
+
+Frontend: When "OAuth" is selected in Step 1, ensure the "Connect with OAuth" section shows. Clicking the "Continue with OAuth" button must trigger a redirect to the correct GoHighLevel OAuth authorization URL (construct this URL using your app's Client ID, defined scopes based on GHL docs for needed permissions like contacts.readonly/write, emails.send, etc., and the correct redirect_uri).
+
+Backend: Implement the OAuth callback endpoint (e.g., /auth/gohighlevel/callback) specified as the redirect_uri. This endpoint must:
+
+Receive the authorization code from GoHighLevel.
+
+Exchange the code for access_token and refresh_token using your app's securely stored Client ID & Secret.
+
+Securely store these tokens (access, refresh, expiry) associated with the user/instance.
+
+Implement logic for using the refresh_token later.
+
+UI Feedback (Frontend): Upon successful return to the callback and backend token storage, redirect the user back to the modal (or update its state) to show a "Connected via OAuth" status and automatically advance the step indicator to "Set Up Webhooks". Enable the "Next" button or automatically proceed. Handle OAuth errors gracefully, showing messages in the UI.
+
+API Key Path:
+
+Frontend: When "API Key" is selected in Step 1, dynamically display input fields for:
+
+GoHighLevel API Key (add placeholder text advising if Agency or Location key is needed).
+
+(Optional, but recommended based on GHL usage) Location ID input, if applicable.
+
+Include a "Verify & Continue" or similar button within this section.
+
+Backend: Create an endpoint to receive the submitted API Key (and Location ID). This endpoint must:
+
+Attempt to validate the key by making a test API call to GHL (e.g., /locations/search or /users/me) using the provided key in the Authorization: Bearer <API_KEY> header.
+
+Securely store the validated API Key (and Location ID) if successful.
+
+UI Feedback (Frontend): After the user submits the key and the backend responds, update the UI within the modal:
+
+On success: Show "API Key Verified", maybe mask the key input, update the step indicator to "Set Up Webhooks", and enable the "Next" button or automatically proceed.
+
+On failure: Show a clear error message (e.g., "Invalid API Key").
+
+Step 3: Set Up Webhooks (Conditional Display):
+
+Frontend: This step's content should only become visible/active after a successful connection in Step 2 (via either OAuth or API Key). Display UI elements (e.g., checkboxes) allowing the user to select the specific GoHighLevel events they wish to subscribe to (e.g., "Contact Created", "Contact Updated"). Fetch available event types from GHL API if possible, otherwise list common ones based on docs.
+
+Backend:
+
+Implement an endpoint within this application to serve as the listener URL for incoming GHL webhooks (e.g., /webhooks/gohighlevel). This endpoint needs logic to process expected GHL event payloads later.
+
+Implement logic triggered when the user saves selections in the frontend: Use the stored OAuth token or API Key to make API calls to GoHighLevel's webhook subscription endpoint (/webhooks/) to register this application's listener URL for each event the user selected. Store registration details. Handle potential errors during registration.
+
+Step 4: Test & Save:
+
+Frontend: Display a summary/confirmation. Include a "Test Connection" button that triggers a backend check. Add a final "Save Connection" or "Finish" button.
+
+Backend:
+
+Implement a "test connection" endpoint: Re-verify the stored API key/OAuth token validity by making a simple GHL API call.
+
+Implement the "save" logic: Persist the complete integration configuration (status: Connected, type: OAuth/APIKey, associated tokens/key, webhook settings) securely.
+
+UI Feedback (Frontend): Show success/failure message for the "Test Connection". Upon clicking "Save Connection", close the modal and update the main /settings/integrations page to reflect that GoHighLevel is now connected.
+
+Context: The GoHighLevel connection modal is currently static and non-functional. This task requires implementing the full frontend interactivity and corresponding backend logic for every step, ensuring a smooth, dynamic, and successful connection process for both OAuth and API Key methods, strictly following GoHighLevel's documentation.

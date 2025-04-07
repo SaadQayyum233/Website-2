@@ -1,0 +1,107 @@
+I. REQUIRED FUNCTIONALITY & UI FLOW (/settings/integrations):
+
+"Add App" Tab (Replace "App Browser"):
+
+App Browser Component: Implement a functional component that:
+
+Fetches Data: Successfully calls the backend endpoint GET /api/integrations/available-apps.
+
+Displays Apps: Renders a list or grid of available applications (fetched from backend) using Icons, Names, Descriptions, and Badges (e.g., "Verified", "Built-in"), similar to the Make.com browser. Crucially, this MUST display apps like GHL, OpenAI, HTTP, Webhooks, Google Sheets, etc., based on the backend response.
+
+Search Functionality: Include a working search bar to filter the displayed apps by name in real-time.
+
+Fix Loading: Ensure this component correctly handles loading states and displays fetched apps, resolving the "No integrations found" issue by implementing the necessary frontend fetch logic AND ensuring the backend endpoint returns data.
+
+Module Selection View:
+
+Triggered on App Click: When a user clicks an app (e.g., "HTTP") in the "Add App" browser:
+
+Navigate to or display a new view/panel dedicated to that app.
+
+This view MUST list the available Triggers and Actions (Modules) for the selected app (e.g., for HTTP: "Make a request", "Get a file"; for GHL: "Contact Created Trigger", "Add Tag Action").
+
+Fetch module data from the selected app's metadata (availableTriggers, availableActions from the backend response).
+
+Display each module with its Icon, Name, and Description. Include a search bar for modules.
+
+Module Configuration Panel/Modal (ModuleConfig.jsx):
+
+Triggered on Module Click: When a user clicks a specific module (e.g., "HTTP - Make a request"):
+
+Open a detailed configuration panel/modal.
+
+Dynamic Content: The fields and layout MUST be generated dynamically based on the selected module's specific configuration requirements (configFields, requiredParams, etc., fetched from backend metadata).
+
+Implement Key Module Config UIs:
+
+"HTTP - Make a request": Faithfully replicate the detailed configuration options shown in the Make.com screenshot (Connection dropdown/creation, URL, Method, Headers (add/remove pairs), Query Params (add/remove pairs), Body Type dropdown, Body input, Parse Response toggle, Advanced toggle).
+
+"Webhook Trigger" (Generic or App-Specific like GHL):
+
+Display Generated URL: Prominently display the unique, backend-generated Webhook URL needed by the external service. Include a "Copy URL" button.
+
+Provide clear setup instructions within the panel.
+
+"API Key Authentication" Module/Flow: Provide secure input fields for API keys and any other parameters defined in configFields.
+
+"OAuth2 Authentication" Module/Flow: Include a "Connect" button triggering the backend OAuth flow. Clearly display required scopes and the backend-generated Redirect URI for the user to copy into the external service.
+
+Connection Management: Integrate credential handling within the module configuration. Use a dropdown to select existing connections or a "Create/Add New Connection" button that triggers the appropriate authentication flow (API Key form, OAuth redirect) based on the module's requiredAuthMethod.
+
+II. BACKEND REQUIREMENTS (Critical for Functionality & Extensibility):
+
+GET /api/integrations/available-apps Endpoint:
+
+Fix/Implement: Ensure this endpoint is functional and returns a JSON array.
+
+Rich Metadata: Each app object MUST contain:
+
+id, name, iconUrl, description, category, badges
+
+authMethodsSupported: Array (e.g., ['apikey', 'oauth2', 'ghl-oauth'])
+
+availableTriggers: Array of detailed module objects (e.g., { id: 'ghl_contact_created', name: 'Contact Created', type: 'webhook', configFields: [], schema: {...} })
+
+availableActions: Array of detailed module objects (e.g., { id: 'http_make_request', name: 'Make a request', type: 'api_call', configFields: [ {name: 'url', ...}, {name: 'method', ...} ], requiredAuthMethod: 'optional | apikey | oauth2', requiredParams: [] })
+
+Initial Data: MUST include comprehensive metadata for GHL, OpenAI, HTTP (Generic), Webhooks (Generic), and Google Sheets to demonstrate the structure.
+
+Credential Storage (POST /api/integrations/credentials): Implement endpoint to securely receive and store (encrypted) API Keys, OAuth tokens (access + refresh), associated with a user and connection type.
+
+Module Configuration Storage (POST /api/automations/modules): Implement endpoint to save the specific configuration settings for an instance of a module (e.g., the URL, method, headers for an HTTP action), linking it to a saved credential/connection ID.
+
+Webhook URL Generation: Implement backend logic to generate unique, secure, and identifiable URLs for webhook trigger instances.
+
+Webhook Ingestion (/api/webhooks/incoming/[instance_id]): Implement endpoint to receive webhook data, validate, identify the source module instance, and log the event (foundation for triggering actions later).
+
+III. CORE PRINCIPLES TO ENFORCE:
+
+Modularity: The system must be built around the concept of Apps containing distinct Trigger/Action Modules, like Make.com.
+
+Data-Driven UI: All displayed apps, modules, and configuration fields must originate from the backend metadata API (/api/integrations/available-apps).
+
+Extensibility: Adding a new app integration should primarily involve adding its metadata (including triggers, actions, config fields) to the backend data source. The frontend components should adapt automatically.
+
+Clear Value Exchange: Explicitly handle the display of generated values (Webhook URLs, Redirect URIs) and the collection of external credentials (API Keys, Client IDs).
+
+IV. Validation Checklist (AI Must Confirm):
+
+Confirmed: The primary focus is rebuilding the entire Integrations feature (UI + Backend) based on the Make.com module concept.
+
+Confirmed: The "Add App" browser WILL be fixed to fetch and display multiple apps (GHL, OpenAI, HTTP, Webhooks, Sheets) from a functional backend endpoint.
+
+Confirmed: Clicking an app WILL lead to a Module Selection view (listing Triggers/Actions for that app).
+
+Confirmed: Clicking a module WILL open a dynamically generated configuration panel specific to that module's requirements (replicating the HTTP example's detail).
+
+Confirmed: The UI WILL display generated Webhook URLs / Redirect URIs for copying and provide correct fields for external credentials.
+
+Confirmed: Connection creation/selection supporting API Key, OAuth2, Webhook types WILL be integrated into the module configuration flow.
+
+Confirmed: Backend metadata (available-apps) WILL include detailed availableTriggers and availableActions for each app.
+
+Confirmed: Backend endpoints for secure credential storage, module config storage, and webhook ingestion WILL be implemented.
+
+Confirmed: The system will be architected for easy addition of future integrations via backend metadata changes.
+
+Instruction: Execute this rebuild with precision. Prioritize creating the functional, Make.com-inspired workflow for browsing apps, selecting modules, and configuring them with the correct dynamic fields and value exchange. Ensure the backend provides the necessary rich metadata and handles data storage/ingestion correctly.

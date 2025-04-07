@@ -1,0 +1,59 @@
+Action: Enhance the Webhook integration functionality within the Replit project at https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/ to support configuring both receiving incoming webhooks and sending outgoing webhooks/API calls (including GET and POST).
+
+Part 1: Fix the Existing "Connect Custom Webhook" Modal for Receiving Data
+
+Target: The modal component currently shown for "Connect Custom Webhook" (reference image).
+
+Goal: Modify this specific modal so it correctly and clearly configures only the endpoint URL used to receive incoming webhook data from external systems.
+
+Changes:
+
+Remove the "Integration Method" choice (Webhook Receive / API Send checkboxes). This modal is for setting up endpoints to receive data.
+
+Ensure only one clear "Webhook Name" field exists.
+
+Verify and clarify essential fields for receiving: Your Webhook URL (display the generated URL), Webhook Secret (optional, for signature validation), Payload Mapping (for incoming data structure), Available Webhook Events (if these trigger internal actions upon receiving).
+
+Remove any fields from this modal that relate to sending data out (like target URLs, outgoing methods POST/GET, etc.).
+
+Adjust labels and text within this modal to reflect its sole purpose of configuring an endpoint to receive data.
+
+Part 2: Implement Configuration for Sending Outgoing Webhooks/API Calls
+
+Goal: Add the necessary UI and backend logic for users to configure sending data from this application to external URLs via HTTP requests (webhooks or API calls), supporting both POST and GET methods.
+
+Implementation:
+
+Create UI: Design and implement a new UI section or modal (e.g., accessible from /settings/integrations via a button like "Configure Outgoing Action" or similar). Do not try to cram this into the existing incoming webhook modal fixed in Part 1.
+
+Configuration Fields (in the new UI):
+
+Configuration Name: To identify the outgoing action.
+
+Trigger Event: Define when this action runs (e.g., "On New User", manual).
+
+Target URL: The external URL to send the request to.
+
+HTTP Method: Selector for POST, GET (and potentially others like PUT, DELETE).
+
+Headers: Allow adding custom HTTP headers (e.g., Content-Type, Authorization).
+
+Payload/Parameters:
+
+For POST/PUT: UI to select data fields from this application's database (multi-select list) and a template area to build the JSON payload using these fields (e.g., {"user_email": "{user.email}"}).
+
+For GET/DELETE: UI to define URL Query Parameters, potentially using selected database fields.
+
+Backend Logic:
+
+Securely store these outgoing configurations.
+
+Implement the trigger mechanism.
+
+Fetch relevant application data based on selected fields when triggered.
+
+Build and execute the HTTP request (POST or GET) to the Target URL with configured headers and payload/parameters.
+
+Log requests and responses/errors.
+
+Summary: First, fix the existing modal to be only for setting up endpoints to receive data. Second, create the separate functionality and UI needed to configure and execute outgoing data requests (webhooks/API calls using POST/GET) to external systems, including selecting internal data fields to send.

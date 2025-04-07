@@ -1,0 +1,133 @@
+URGENT: Perform a major overhaul and correction of the existing React Frontend and Node.js Backend. The current implementation has critical bugs, fails to meet core requirements specified in previous prompts, and is unusable for its intended purpose of managing API/Webhook integrations in a flexible and user-friendly way, inspired by platforms like GoHighLevel and Make.com.
+
+Strict Adherence Required: Follow these instructions precisely. Previous attempts did not capture the necessary detail or functionality.
+
+I. MANDATORY BUG FIXES (Implement Before Proceeding):
+
+Fix "Failed to load integrations" Error: Diagnose and resolve the issue preventing the /settings/integrations page from loading data. This likely involves fixing the frontend API call (axios/fetch in IntegrationsSettingsPage.jsx or similar) or the corresponding backend endpoint (GET /api/integrations/available-apps or GET /api/integrations/connections). Ensure error handling provides meaningful messages to the user.
+
+Fix Console Error (<a> nesting): Resolve the React DOM validation warning (Warning: validateDOMNesting(...): <a> cannot appear as a descendant of <a>). Review Sidebar.tsx / NavItem.tsx and ensure Link components (from react-router-dom or wouter) are not nested within each other or standard <a> tags incorrectly.
+
+Fix Active Sidebar Link Style: Modify the CSS for the active navigation item in Sidebar.tsx. The active state should visually distinguish the link (e.g., by changing its background color or adding a distinct border/indicator) without making the text invisible (do not just set color: white if the background is also white).
+
+II. Complete Overhaul: Integrations UI & Functionality (/settings/integrations):
+
+Objective: Rebuild this section to look and function like a professional integration marketplace/management tool (Reference: Make.com app browser screenshot). It must handle connections AND webhook configurations dynamically and extensibly.
+
+App Browser Component (AppBrowser.jsx):
+
+Visual Layout: Implement a grid or list view displaying available integrations, closely resembling the Make.com "All Apps" list (Icon, Name, Badges).
+
+Data Source: Fetch data EXCLUSIVELY from the enhanced backend endpoint GET /api/integrations/available-apps. (See Backend section for required metadata).
+
+Search/Filter: Implement functional, client-side or backend-powered search that filters apps by name in real-time.
+
+Categories (Optional but Recommended): Allow filtering by category (CRM, AI, etc.) based on backend metadata.
+
+Click Action: Clicking an app MUST initiate the multi-step configuration flow.
+
+Integration Setup Wizard/Modal (IntegrationSetup.jsx):
+
+Multi-Step Process: Implement a clear, step-by-step UI (like GHL's External Auth Stepper) for configuring each specific integration type. The steps and content MUST be dynamically generated based on the selected app's metadata (authMethod, configFields, ghlScopesRequired, ghlWebhookEventsAvailable, availableTriggers, availableActions, etc.).
+
+Crucial Requirement - Value Exchange:
+
+Displaying Our Values: When the setup requires the user to configure something in the external app (GHL, Google, etc.), our UI MUST display the specific, dynamically generated values they need. Examples:
+
+For GHL Webhooks: Show "Your unique Webhook URL: https://[YOUR_SAAS_URL]/api/webhooks/incoming/ghl/[CONNECTION_ID]" with a "Copy" button.
+
+For Generic OAuth2: Show "Your unique Redirect URI: https://[YOUR_SAAS_URL]/api/auth/[APP_ID]/callback" with a "Copy" button.
+
+Collecting External Values: Provide clearly labeled input fields for the user to paste credentials/settings obtained from the external service (e.g., GHL API Key, OpenAI API Key, another app's Client ID/Secret).
+
+GHL-Specific Flow: Implement the detailed GHL connection flow outlined previously (Choose Method -> Configure OAuth/API Key -> Configure Webhooks -> Test & Save). Include scope selection checkboxes based on ghlScopesRequired. Include webhook event selection checkboxes based on ghlWebhookEventsAvailable. Provide direct, working links to relevant GHL settings pages within the instructions.
+
+Generic OAuth2 Flow: Implement the flow inspired by GHL's External Auth setup (Input App Name, Client ID, Client Secret, Scopes; Display Redirect URI; Input Auth/Token/Refresh URLs; Test; Save).
+
+API Key Flow: Simple, secure input for API keys and other required fields defined in configFields.
+
+Webhook-Only Flow: Display the generated incoming webhook URL and instructions. Allow configuration of which incoming events trigger which actions (see Triggers/Actions below).
+
+Test Connection: Include a functional "Test Connection" button that triggers the backend test endpoint (POST /api/integrations/connections/:id/test).
+
+Connected Integrations View: Implement the view to list active connections with status and Edit/Disconnect options.
+
+III. TRIGGER & ACTION CONFIGURATION (Critical Functional Gap):
+
+Objective: Allow users to define how integrations are used, not just connect them. This is fundamental for automation.
+
+Backend Metadata: Enhance the GET /api/integrations/available-apps response. For each app, include:
+
+availableTriggers: Array of objects describing potential triggers (events the app can emit via webhooks or polling). Example: { id: 'ghl_contact_created', name: 'Contact Created (GHL)', type: 'webhook', schema: { /* JSON schema of expected webhook payload */ } }
+
+availableActions: Array of objects describing actions our SaaS can perform using the app's API. Example: { id: 'ghl_add_tag', name: 'Add Tag to Contact (GHL)', type: 'api_call', requiredParams: [ { name: 'contactId', type: 'string' }, { name: 'tagName', type: 'string' } ] }
+
+Frontend UI (In Integration Setup or Separate "Automations" Section):
+
+Trigger Selection: When configuring a webhook-based integration (like GHL), allow the user to select from the availableTriggers (e.g., checkboxes for GHL events). Store these selections.
+
+Action Configuration (Basic Initial Step): While a full workflow builder is complex, at minimum, the connection setup or a connected app's "Edit" view should allow associating triggers with potential actions. Example: "When GHL Contact Created (Trigger), then [Select Action...]". The action selection could initially just log the intent or trigger a very basic predefined backend process. This lays the foundation.
+
+IV. UI Enhancements - Data Tables & Forms:
+
+Data Table Columns (ContactsPage.jsx, EmailsPage.jsx, ExperimentsPage.jsx):
+
+Accurate Columns: Ensure the default columns and the list in the "Toggle Columns" dropdown exactly reflect all fields present in the corresponding backend database table schema (contacts, emails, experiment_variants). Fetch schema/column definitions dynamically from the backend if possible, otherwise hardcode them accurately based on the defined schema.
+
+Functionality: Ensure sorting, filtering (add basic input), and column visibility toggling (Show/Hide All, individual checkboxes) work flawlessly using TanStack Table.
+
+Emails Page (EmailsPage.jsx):
+
+"All Emails" Tab: Correct table columns as per the emails schema.
+
+"Templates" / "Priority" Tabs: Replace the current table view. Implement a proper email composition interface using a Rich Text Editor component (e.g., TinyMCE, Quill, TipTap integrated into React). This editor should allow formatting text (bold, italic, lists), potentially adding links/images, and saving the HTML content (body_html) along with subject, key_angle etc., back to the emails table via the backend API. Include "Save Template"/"Save Priority Email" buttons.
+
+"Experiments" Tab: Display a table view listing emails with type='experiment'. Include relevant columns from the emails table and potentially key metrics/variant info if available from experiment_variants.
+
+Add Contact Form (ContactsPage.jsx): Ensure the "Add Contact" button opens a modal/form that includes input fields corresponding to all user-editable fields in the contacts database schema (e.g., name, email, tags, relevant custom fields).
+
+V. Backend Enhancements (Reiterate & Expand):
+
+Metadata Endpoint (GET /api/integrations/available-apps): MUST return the rich structure defined above, including availableTriggers and availableActions. Start with GHL and OpenAI, but add placeholders for others like Google Sheets, Slack, Generic Webhook, Generic HTTP to demonstrate extensibility.
+
+Connection Storage: Ensure the backend securely stores (encrypted) all necessary credentials (API Keys, OAuth Tokens - including refresh tokens) and configuration (selected webhook events, trigger/action mappings).
+
+Webhook Ingestion Logic: Enhance the /api/webhooks/incoming/... endpoint. When an event arrives:
+
+Identify the connection and the event type.
+
+Check if the user has configured an action for this trigger.
+
+(Future) Execute the configured action (e.g., call the appropriate core/[app]Service.js function). (Present) Log the event and the intended action clearly.
+
+API Action Execution: Create service functions (e.g., core/ghlService.js, core/openaiService.js) that encapsulate making authenticated API calls to the external services using the stored credentials. These will be called by configured actions.
+
+VI. Documentation:
+
+Implement the dynamic, embedded documentation system as previously specified. Ensure it includes accurate, step-by-step guides for the revised GHL, OpenAI, and generic connection flows, displaying generated values and working links.
+
+VII. Validation Checklist (AI Must Confirm):
+
+Confirmed: The 3 specific bugs (integration load, <a> nesting, active tab style) WILL be fixed first.
+
+Confirmed: The Integrations UI will be rebuilt to resemble the Make.com browser and use dynamic, multi-step configuration flows.
+
+Confirmed: The UI WILL display generated values (Webhook URLs, Redirect URIs) for user copying AND provide correct fields for external credentials.
+
+Confirmed: GHL-specific setup flow (Scopes, Webhooks, Events) and generic flows (OAuth2, APIKey, Webhook) will be implemented.
+
+Confirmed: Backend metadata WILL include availableTriggers / availableActions.
+
+Confirmed: Basic UI elements for selecting triggers and associating actions will be added to the integration setup.
+
+Confirmed: Data Table columns and "Toggle Columns" dropdowns WILL accurately reflect the database schemas (contacts, emails, experiment_variants).
+
+Confirmed: Email "Templates"/"Priority" tabs WILL use a Rich Text Editor component.
+
+Confirmed: Backend will handle secure (encrypted) credential storage, OAuth flows, and webhook ingestion linked to potential actions.
+
+Confirmed: The system design will support adding many future integrations via backend metadata.
+
+Confirmed: Dynamic, embedded documentation with real links and generated values will be implemented.
+
+Instruction: Execute this complete overhaul. Address all specified bugs and implement the required features and UI changes with strict adherence to these detailed instructions and the provided examples. The previous implementation is not acceptable.

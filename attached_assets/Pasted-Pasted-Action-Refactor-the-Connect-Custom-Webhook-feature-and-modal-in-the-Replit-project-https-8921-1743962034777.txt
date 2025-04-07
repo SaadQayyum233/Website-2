@@ -1,0 +1,72 @@
+Pasted-Action-Refactor-the-Connect-Custom-Webhook-feature-and-modal-in-the-Replit-project-https-89216b-1743960908936.txt
+Action: Refactor the "Connect Custom Webhook" feature and modal in the Replit project https://89216bd7-0751-480d-838a-21156c259c79-00-tsybj9xurjd3.janeway.replit.dev/ to follow industry-standard practices, clearly separating the configuration for receiving data (incoming webhooks) and sending data (outgoing webhooks/API calls).
+
+Goal: Replace the current confusing modal with a user-friendly interface that allows users to explicitly choose whether they are setting up an endpoint to receive data or configuring an action to send data, displaying only the relevant fields and testing methods for each case.
+
+Implementation Steps:
+
+Introduce Direction Choice:
+
+Modify the start of the "Connect Custom Webhook" modal (or replace it with a new selection mechanism).
+
+Present the user with a clear, mandatory choice:
+
+Option 1: "Receive Data from External System" (Incoming Webhook)
+
+Option 2: "Send Data to External System" (Outgoing Webhook/API Call)
+
+Implement "Receive Data" Configuration Mode:
+
+Trigger: Show this UI flow when the user selects "Receive Data".
+
+UI Fields (Display ONLY these relevant fields):
+
+Webhook Name: Single field to name this incoming configuration.
+
+Your Webhook URL: Display the unique, system-generated URL for the external system to send data to. Make it easily copyable.
+
+Webhook Secret: (Optional) Input for a secret key used by the backend to validate incoming request signatures (e.g., X-Hub-Signature, X-Webhook-Signature). Implement the backend validation logic.
+
+Payload Mapping: (Optional) UI to define how fields from the incoming JSON payload should map to internal application fields.
+
+Trigger Internal Actions: (Optional) Checkboxes or selection to define what should happen within this application when a valid webhook is received (e.g., "Create Contact", "Log Event").
+
+Testing ("Test & Save" Step): This step should instruct the user on how to test. Since the application is receiving, the test must be initiated from the external system by sending a request to the generated Your Webhook URL. The UI could optionally show recent received requests or logs for this endpoint to confirm successful receipt. Remove any "Test Connection" button that tries to initiate a test from this application for an incoming webhook.
+
+Backend: Ensure logic exists to generate unique URLs, securely store configurations (name, secret, mapping, actions), validate incoming requests (including signature if secret is set), perform mapping, and trigger internal actions.
+
+Implement "Send Data" Configuration Mode:
+
+Trigger: Show this UI flow when the user selects "Send Data".
+
+UI Fields (Display ONLY these relevant fields):
+
+Configuration Name: To identify this outgoing action.
+
+Trigger Event: Define when this action runs (e.g., "On New User", "Manual").
+
+Target URL: Input for the external system's URL to send the request to.
+
+HTTP Method: Dropdown/Selector (e.g., POST, GET, PUT, DELETE).
+
+Headers: UI to add/manage custom HTTP headers (e.g., Content-Type, Authorization).
+
+Request Body / Query Parameters:
+
+If Method is POST/PUT: Provide a way to define the JSON payload body. Include a selector for choosing data fields from this application's database and a template area (e.g., {"user_email": "{user.email}"}).
+
+If Method is GET/DELETE: Provide a way to define URL Query Parameters, potentially using selected database fields.
+
+Testing ("Test & Save" Step):
+
+Include a "Test Connection" / "Send Test Request" button.
+
+Clicking this button should trigger the backend to execute an actual HTTP request based on the current configuration (Target URL, Method, Headers, sample/placeholder Body/Params).
+
+Display the HTTP status code and response body (or error message) from the test request to the user.
+
+Backend: Implement logic to securely store configurations (name, trigger, URL, method, headers, body/param template), listen for triggers, fetch application data, build the request, execute the outgoing HTTP call (handling GET, POST etc.), and process/log the response.
+
+Refactor Step Indicators: Ensure the step indicators (e.g., "Configure", "Test & Save") make sense and adapt based on the chosen mode ("Receive" or "Send").
+
+Context: The current custom webhook modal is unusable because it conflates incoming and outgoing webhook configurations. This refactoring introduces a standard, clear separation, providing the correct UI fields and testing mechanisms for each distinct direction (receiving vs. sending data), including support for different HTTP methods like GET and POST in the outgoing configuration.
